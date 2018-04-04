@@ -269,49 +269,6 @@ def main():
 
     (options, args) = flags_parser.parse_args()
 
-    # args = docopt(
-    #     __doc__, version="TermFeed 0.0.11 (with pleasure by: Aziz Alto)")
-
-    # # parse args
-    # browse = args['-b']
-    # external = args['<rss-url>']
-    # add_link = args['-a']
-    # category = args['<category>']
-    # delete = args['-d']
-    # remove = args['-D']
-    # tags = args['-t']
-    # rebuild = args['-R']
-
-    # fetch = True
-
-    # # get rss urls
-    # if external:
-    #     urls = [validate_feed(external)]
-    # else:
-    #     urls = topic_choice(browse)
-
-    # # if not listing feeds
-    # if add_link or delete or category or tags or rebuild or remove:
-    #     fetch = False
-
-    # # updating URLs library
-    # if add_link:
-    
-    # if delete:
-    
-
-    # if remove:
-    
-    # # display resource contents
-    # if tags:
-
-
-    # if rebuild:
-    #     dbop.rebuild_library()
-
-    # if fetch:
-    #     fetch_feeds(urls)
-
 # start
 if __name__ == '__main__':
 
