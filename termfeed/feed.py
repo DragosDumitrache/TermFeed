@@ -30,6 +30,7 @@ Options:
 
 
 from __future__ import print_function
+from optparse import OptionParser
 import sys
 import webbrowser
 import feedparser
@@ -73,7 +74,6 @@ def open_page(url, title):
 
 
 def print_feed(zipped):
-
     for num, post in zipped.items():
         print(bcolors.OKGREEN + '[{}] '.format(num) + bcolors.ENDC, end='')
         print('{}'.format(post.title.encode('utf8')))
@@ -187,35 +187,51 @@ def fetch_feeds(urls):
         recurse(zipped)
 
 
-def topic_choice(browse):
+def topic_choice():
+    topics = dbop.topics()
 
-    if browse:
-        topics = dbop.topics()
+    tags = {}
 
-        tags = {}
+    for i, tag in enumerate(topics):
+        tags[i] = tag
+        print("{}) {}".format(i, tags[i]))
 
-        for i, tag in enumerate(topics):
-            tags[i] = tag
-            print("{}) {}".format(i, tags[i]))
-
-        try:
-            m = '\nChoose the topic (number)? : '
-            try: # python 2
-                uin = raw_input(m) 
-            except NameError: # python 3
-                uin = input(m)
-            uin = int(uin)
-            topic = tags[uin]
-        except: # catch all exceptions
-            print('\nInvalid choice!')
-            topic = 'General'
-
-    else:
+    try:
+        m = '\nChoose the topic (number)? : '
+        try: # python 2
+            uin = raw_input(m)
+        except NameError: # python 3
+            uin = input(m)
+        uin = int(uin)
+        topic = tags[uin]
+    except: # catch all exceptions
+        print('\nInvalid choice!')
         topic = 'General'
-    urls = dbop.read(topic)
 
-    return urls
+    return dbop.read(topic)
 
+def feed_browse(option, opt_str, value, parser):
+    urls = topic_choice()
+    fetch_feeds(urls)
+
+def feed_add(option, opt_str, value, parser):
+    return "Add not implemented yet"
+
+def feed_delete(option, opt_str, value, parser):
+    return "Delete not implemented yet"
+
+def feed_topics(option, opt_str, value, parser):
+    return "Topics not implemented yet"
+
+def feed_remove_topic(option, opt_str, value, parser):
+    return "Remove topic not implemented yet"
+
+def feed_refresh(option, opt_str, value, parser):
+    dbop.rebuild_library()
+    return "Refresh successful"
+
+def feed_version(option, opt_str, value, parser):
+    print("TermFeed 0.0.12 (Curtesy of Sire of Dragons and Aziz Alto)")
 
 def validate_feed(url):
     if parse_feed(url):
@@ -227,55 +243,66 @@ from .support.docopt import docopt
 
 
 def main():
-    args = docopt(
-        __doc__, version="TermFeed 0.0.11 (with pleasure by: Aziz Alto)")
+    flags_parser = OptionParser()
+    flags_parser.add_option('-b', '--browse', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_browse, dest='output')
+    flags_parser.add_option('-a', '--add', help='Add new url <rss-url> to database under [<category>] (or "General" otherwise)', action='callback', callback=feed_add, dest='output')
+    flags_parser.add_option('-d', '--delete', help='Delete <rss-url> from the database file', action='callback', callback=feed_delete, dest='output')
+    flags_parser.add_option('-t', '--topics', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_topics, dest='output')
+    flags_parser.add_option('-D', '--removeTopic', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_remove_topic, dest='output')
+    flags_parser.add_option('-R', '--refresh', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_refresh, dest='output')
+    flags_parser.add_option('-v', '--version', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_version, dest='output')
 
-    # parse args
-    browse = args['-b']
-    external = args['<rss-url>']
-    add_link = args['-a']
-    category = args['<category>']
-    delete = args['-d']
-    remove = args['-D']
-    tags = args['-t']
-    rebuild = args['-R']
+    (options, args) = flags_parser.parse_args()
 
-    fetch = True
+    # args = docopt(
+    #     __doc__, version="TermFeed 0.0.11 (with pleasure by: Aziz Alto)")
 
-    # get rss urls
-    if external:
-        urls = [validate_feed(external)]
-    else:
-        urls = topic_choice(browse)
+    # # parse args
+    # browse = args['-b']
+    # external = args['<rss-url>']
+    # add_link = args['-a']
+    # category = args['<category>']
+    # delete = args['-d']
+    # remove = args['-D']
+    # tags = args['-t']
+    # rebuild = args['-R']
 
-    # if not listing feeds
-    if add_link or delete or category or tags or rebuild or remove:
-        fetch = False
+    # fetch = True
 
-    # updating URLs library
-    if add_link:
-        url = validate_feed(add_link)
-        if category:
-            dbop.add_link(url, category)
-        else:
-            dbop.add_link(url)
-    if delete:
-        dbop.remove_link(delete)
+    # # get rss urls
+    # if external:
+    #     urls = [validate_feed(external)]
+    # else:
+    #     urls = topic_choice(browse)
 
-    if remove:
-        dbop.delete_topic(remove)
-    # display resource contents
-    if tags:
-        if category:
-            dbop.browse_links(category)
-        else:
-            dbop.print_topics()
+    # # if not listing feeds
+    # if add_link or delete or category or tags or rebuild or remove:
+    #     fetch = False
 
-    if rebuild:
-        dbop.rebuild_library()
+    # # updating URLs library
+    # if add_link:
+    #     url = validate_feed(add_link)
+    #     if category:
+    #         dbop.add_link(url, category)
+    #     else:
+    #         dbop.add_link(url)
+    # if delete:
+    #     dbop.remove_link(delete)
 
-    if fetch:
-        fetch_feeds(urls)
+    # if remove:
+    #     dbop.delete_topic(remove)
+    # # display resource contents
+    # if tags:
+    #     if category:
+    #         dbop.browse_links(category)
+    #     else:
+    #         dbop.print_topics()
+
+    # if rebuild:
+    #     dbop.rebuild_library()
+
+    # if fetch:
+    #     fetch_feeds(urls)
 
 # start
 if __name__ == '__main__':
