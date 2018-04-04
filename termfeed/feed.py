@@ -215,16 +215,31 @@ def feed_browse(option, opt_str, value, parser):
     fetch_feeds(urls)
 
 def feed_add(option, opt_str, value, parser):
-    return "Add not implemented yet"
+    add_link = parser.rargs[0]
+    if len(parser.rargs) > 1:
+        category = parser.rargs[1]
+    else:
+        category = False
+
+    url = validate_feed(add_link)
+    if category:
+        dbop.add_link(url, category)
+    else:
+        dbop.add_link(url)
+
 
 def feed_delete(option, opt_str, value, parser):
-    return "Delete not implemented yet"
+    dbop.remove_link(delete)
 
 def feed_topics(option, opt_str, value, parser):
-    return "Topics not implemented yet"
+    category = parser.rargs
+    if category:
+        dbop.browse_links(category)
+    else:
+        dbop.print_topics()
 
 def feed_remove_topic(option, opt_str, value, parser):
-    return "Remove topic not implemented yet"
+    dbop.delete_topic(parser.rargs[0])
 
 def feed_refresh(option, opt_str, value, parser):
     dbop.rebuild_library()
@@ -281,22 +296,15 @@ def main():
 
     # # updating URLs library
     # if add_link:
-    #     url = validate_feed(add_link)
-    #     if category:
-    #         dbop.add_link(url, category)
-    #     else:
-    #         dbop.add_link(url)
+    
     # if delete:
-    #     dbop.remove_link(delete)
+    
 
     # if remove:
-    #     dbop.delete_topic(remove)
+    
     # # display resource contents
     # if tags:
-    #     if category:
-    #         dbop.browse_links(category)
-    #     else:
-    #         dbop.print_topics()
+
 
     # if rebuild:
     #     dbop.rebuild_library()
