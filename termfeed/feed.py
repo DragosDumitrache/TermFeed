@@ -31,6 +31,7 @@ Options:
 
 from __future__ import print_function
 from optparse import OptionParser
+from collections import OrderedDict
 import sys
 import webbrowser
 import feedparser
@@ -43,6 +44,7 @@ except ImportError:
 
 import termfeed.dbop as dbop
 
+feed_hierarchy = []
 
 class bcolors:
     HEADER = '\033[95m'
@@ -140,37 +142,37 @@ def parse_feed(url):
         return None
 
 
-def fetch_feeds(urls):
-
+def fetch_feeds(url_entries):
+    urls = url_entries.keys()
     for i, url in enumerate(urls):
 
         d = parse_feed(url)
 
+        # print(feed_hierarchy)
         if d is None:
             continue  # to next url
 
         # feeds source
         l = len(urls) - 1
-        print(
-            bcolors.HEADER + "\n     {}/{} SOURCE>> {}\n".format(i, l, url) + bcolors.ENDC)
-
+        print(bcolors.HEADER + "\n     {}/{} SOURCE>> {}\n".format(i, l, url) + bcolors.ENDC)
         # print out feeds
-        zipped = dict(enumerate(d.entries))
-
+        url_entries[url]['unread'] = dict(enumerate(d.entries))
         def recurse(zipped):
+            unread = zipped['unread']
+            read = zipped['read']
 
-            print_feed(zipped)
+            print_feed(unread)
 
             kb = _continue()  # keystroke listener
 
             if kb:
-                user_selected = kb is not '' and kb in str(zipped.keys())
+                user_selected = kb is not '' and kb in str(unread.keys())
                 if user_selected:
                     # to open page in browser
-                    link = zipped[int(kb)].link
-                    title = zipped[int(kb)].title
+                    link = unread[int(kb)].link
+                    title = unread[int(kb)].title
                     try:
-                        desc = zipped[int(kb)].description
+                        desc = unread[int(kb)].description
                         desc = clean_txt(desc)
                         print_desc(title, desc)
                     except AttributeError:
@@ -178,23 +180,23 @@ def fetch_feeds(urls):
 
                     if open_it():
                         open_page(link, title)
+                        read += [unread[int(kb)]]
+                        unread.pop(int(kb), None)
                 else:
                     print(
                         bcolors.BOLD + 'Invalid entry ... {} '.format(kb) + bcolors.ENDC)
                 # repeat with same feeds and listen to kb again
                 recurse(zipped)
 
-        recurse(zipped)
+        recurse(url_entries[url])
 
 
 def topic_choice():
     topics = dbop.topics()
 
-    tags = {}
-
+    feed_hierarchy = list(topics)
     for i, tag in enumerate(topics):
-        tags[i] = tag
-        print("{}) {}".format(i, tags[i]))
+        print('{} {}'.format(i, feed_hierarchy[i]))
 
     try:
         m = '\nChoose the topic (number)? : '
@@ -203,7 +205,7 @@ def topic_choice():
         except NameError: # python 3
             uin = input(m)
         uin = int(uin)
-        topic = tags[uin]
+        topic = feed_hierarchy[uin]
     except: # catch all exceptions
         print('\nInvalid choice!')
         topic = 'General'

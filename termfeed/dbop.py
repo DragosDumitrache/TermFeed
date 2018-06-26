@@ -8,6 +8,7 @@ dbop.py manipulate database add, update, delete
 """
 
 import shelve
+import pickle
 from os import path
 
 homedir = path.expanduser('~')
@@ -22,7 +23,8 @@ if not path.exists(homedir + '/.termfeed.db'):
 
 
 # connect to db
-d = shelve.open(path.join(homedir, '.termfeed'), 'w')
+db = open(path.join(homedir, '.termfeed.db'), 'rb')
+d = pickle.load(db)
 
 
 def topics():
@@ -38,7 +40,8 @@ def read(topic):
 
 def browse_links(topic):
     if topic in d.keys():
-        links = d[topic]
+        links_entries = d[topic]
+        links = links_entries.keys()
         print('{} resources:'.format(topic))
         for link in links:
             print('\t{}'.format(link))
