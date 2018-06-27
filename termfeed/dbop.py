@@ -37,6 +37,8 @@ def read(topic):
     else:
         return None
 
+def mark_read(topic, link):
+    #TODO Mark link entries as read
 
 def browse_links(topic):
     if topic in d.keys():

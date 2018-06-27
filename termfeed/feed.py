@@ -148,7 +148,6 @@ def fetch_feeds(url_entries):
 
         d = parse_feed(url)
 
-        # print(feed_hierarchy)
         if d is None:
             continue  # to next url
 
@@ -186,6 +185,7 @@ def fetch_feeds(url_entries):
                     print(
                         bcolors.BOLD + 'Invalid entry ... {} '.format(kb) + bcolors.ENDC)
                 # repeat with same feeds and listen to kb again
+
                 recurse(zipped)
 
         recurse(url_entries[url])
