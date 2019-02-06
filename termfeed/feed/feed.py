@@ -211,26 +211,23 @@ def topic_choice():
 
     return dbop.read(topic)
 
-def feed_browse(ctx, param, value):
+
+def feed_browse():
     urls = topic_choice()
     fetch_feeds(urls)
 
-def feed_add(option, opt_str, value, parser):
-    add_link = parser.rargs[0]
-    if len(parser.rargs) > 1:
-        category = parser.rargs[1]
-    else:
-        category = False
 
-    url = validate_feed(add_link)
+def feed_add(rss_url, category):
+    url = validate_feed(rss_url)
     if category:
         dbop.add_link(url, category)
     else:
         dbop.add_link(url)
 
 
-def feed_delete(option, opt_str, value, parser):
-    dbop.remove_link(delete)
+def feed_delete(rss_url):
+    dbop.remove_link(rss_url)
+
 
 def feed_topics(option, opt_str, value, parser):
     category = parser.rargs
@@ -239,15 +236,19 @@ def feed_topics(option, opt_str, value, parser):
     else:
         dbop.print_topics()
 
+
 def feed_remove_topic(option, opt_str, value, parser):
     dbop.delete_topic(parser.rargs[0])
+
 
 def feed_refresh(option, opt_str, value, parser):
     dbop.rebuild_library()
     return "Refresh successful"
 
+
 def feed_version(option, opt_str, value, parser):
     print("TermFeed 0.0.12 (Curtesy of Sire of Dragons and Aziz Alto)")
+
 
 def validate_feed(url):
     if parse_feed(url):
@@ -255,14 +256,10 @@ def validate_feed(url):
     else:
         exit()
 
-from termfeed.support.docopt import docopt
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help'], 'ignore_unknown_options': True}
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-# @click.option('-b', '--browse', is_flag=True,
-#               help='Browse feed by category available in the database file',
-#               callback=feed_browse)
 def feed():
     pass
 
@@ -273,6 +270,23 @@ def browse():
     Browse feed by category available in the database file
     """
     feed_browse()
+
+
+@feed.command()
+@click.argument('rss-url')
+@click.argument('category', default='General')
+def add(rss_url, category='General'):
+    """
+    Add new url <rss-url> to database under [<category>][default: General]
+    """
+    feed_add(rss_url, category)
+
+
+@feed.command()
+@click.argument('rss-url')
+def delete(rss_url):
+    feed_delete(rss_url)
+
 
 def main():
     feed()
