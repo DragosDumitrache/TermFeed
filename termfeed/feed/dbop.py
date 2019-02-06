@@ -38,6 +38,7 @@ def read(topic):
         return None
 
 def mark_read(topic, link):
+    pass
     #TODO Mark link entries as read
 
 def browse_links(topic):

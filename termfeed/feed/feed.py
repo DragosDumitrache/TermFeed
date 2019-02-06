@@ -31,8 +31,7 @@ Options:
 
 from __future__ import print_function
 from optparse import OptionParser
-from collections import OrderedDict
-import sys
+import click
 import webbrowser
 import feedparser
 import re
@@ -42,7 +41,7 @@ try:
 except ImportError:
     from urllib.request import urlopen
 
-import termfeed.dbop as dbop
+from termfeed.feed import dbop
 
 feed_hierarchy = []
 
@@ -64,7 +63,7 @@ def _connected():
     try:
         urlopen(host)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -212,7 +211,7 @@ def topic_choice():
 
     return dbop.read(topic)
 
-def feed_browse(option, opt_str, value, parser):
+def feed_browse(ctx, param, value):
     urls = topic_choice()
     fetch_feeds(urls)
 
@@ -256,26 +255,42 @@ def validate_feed(url):
     else:
         exit()
 
-from .support.docopt import docopt
+from termfeed.support.docopt import docopt
 
+CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help'], 'ignore_unknown_options': True}
+
+@click.group(context_settings=CONTEXT_SETTINGS)
+# @click.option('-b', '--browse', is_flag=True,
+#               help='Browse feed by category available in the database file',
+#               callback=feed_browse)
+def feed():
+    pass
+
+
+@feed.command()
+def browse():
+    """
+    Browse feed by category available in the database file
+    """
+    feed_browse()
 
 def main():
-    flags_parser = OptionParser()
-    flags_parser.add_option('-b', '--browse', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_browse, dest='output')
-    flags_parser.add_option('-a', '--add', help='Add new url <rss-url> to database under [<category>] (or "General" otherwise)', action='callback', callback=feed_add, dest='output')
-    flags_parser.add_option('-d', '--delete', help='Delete <rss-url> from the database file', action='callback', callback=feed_delete, dest='output')
-    flags_parser.add_option('-t', '--topics', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_topics, dest='output')
-    flags_parser.add_option('-D', '--removeTopic', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_remove_topic, dest='output')
-    flags_parser.add_option('-R', '--refresh', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_refresh, dest='output')
-    flags_parser.add_option('-v', '--version', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_version, dest='output')
+    feed()
 
-    (options, args) = flags_parser.parse_args()
+    # flags_parser = OptionParser()
+    # flags_parser.add_option('-b', '--browse', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_browse, dest='output')
+    # flags_parser.add_option('-a', '--add', help='Add new url <rss-url> to database under [<category>] (or "General" otherwise)', action='callback', callback=feed_add, dest='output')
+    # flags_parser.add_option('-d', '--delete', help='Delete <rss-url> from the database file', action='callback', callback=feed_delete, dest='output')
+    # flags_parser.add_option('-t', '--topics', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_topics, dest='output')
+    # flags_parser.add_option('-D', '--removeTopic', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_remove_topic, dest='output')
+    # flags_parser.add_option('-R', '--refresh', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_refresh, dest='output')
+    # flags_parser.add_option('-v', '--version', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_version, dest='output')
 
-# start
+    # (options, args) = flags_parser.parse_args()
+
+
 if __name__ == '__main__':
-
     if not _connected():
         print('No Internet Connection!')
         exit()
-
     main()

@@ -8,19 +8,19 @@ except ImportError:
 
 setup(
     name='TermFeed',
-    description=('Browse, read, and open your favorite rss feed in the terminal (without curses).'),
-    author='Aziz Alto',
-    url='https://github.com/iamaziz/TermFeed',
-    download_url='https://github.com/iamaziz/TermFeed/archive/master.zip',
-    license = "MIT",
-    author_email='iamaziz.alto@gmail.com',
+    description=('Browse, read, and open your favorite rss feed in the terminal.'),
+    author='Dragos Dumitrache',
+    url='https://github.com/dragosdumitrache/TermFeed',
+    download_url='https://github.com/dragosdumitrache/TermFeed/archive/master.zip',
+    license="MIT",
+    author_email='dragosd2000@gmail.com',
     version='0.0.11',
-    install_requires=['feedparser'],
-    packages=['termfeed', 'termfeed.support'],
+    install_requires=['feedparser', 'click'],
+    packages=['termfeed', 'termfeed.support', 'termfeed.feed'],
     scripts=[],
     entry_points={
         'console_scripts': [
-            'feed = termfeed.feed:main'
+            'feed = termfeed.feed.feed:main'
         ]
     }
 )
