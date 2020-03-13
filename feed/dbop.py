@@ -7,14 +7,13 @@ database operations.
 dbop.py manipulate database add, update, delete
 """
 
-import shelve
 import pickle
 from os import path
 
 homedir = path.expanduser('~')
 
 def rebuild_library():
-    import termfeed.dbinit
+    import feed.dbinit
     print('created ".termfeed.db" in {}'.format(homedir))
 
 # instantiate db if it's not created yet
@@ -100,14 +99,26 @@ def delete_topic(topic):
         exit()
 
 
-# if __name__ == '__main__':
+def add_topic(topic):
+    if topic in d:
+        print(f'Topic {topic} already exists')
+    else:
+        d[topic] = []
+    exit()
 
-#     for l in read('News'):
-#         print(l)
 
-#     remove_link('http://rt.com/rss/')
+if __name__ == '__main__':
+    add_topic('Rust')
+    pickle.dump(d, path.join(homedir, '.termfeed.db'))
+    d = pickle.load(path.join(homedir, '.termfeed.db'))
 
-#     add_link('http://rt.com/rss/', 'News')
-
-#     for l in read('News'):
-#         print(l)
+    # rebuild_library()
+    # for l in read('CS'):
+    #     print(l)
+    #
+    # remove_link('http://rt.com/rss/')
+    #
+    # add_link('http://rt.com/rss/', 'News')
+    #
+    # for l in read('News'):
+    #     print(l)

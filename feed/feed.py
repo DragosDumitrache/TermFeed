@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """TermFeed 0.0.11
 
@@ -28,22 +28,23 @@ Options:
 
 """
 
-
 from __future__ import print_function
-from optparse import OptionParser
-import click
-import webbrowser
-import feedparser
+
 import re
+import webbrowser
+
+import click
+import feedparser
 
 try:
     from urllib import urlopen
 except ImportError:
     from urllib.request import urlopen
 
-from termfeed.feed import dbop
+from feed import dbop
 
 feed_hierarchy = []
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -68,8 +69,7 @@ def _connected():
 
 
 def open_page(url, title):
-    print(bcolors.WARNING +
-          '\topening ... {}\n'.format(title.encode('utf8')) + bcolors.ENDC)
+    print(bcolors.WARNING + '\topening ... {}\n'.format(title.encode('utf8')) + bcolors.ENDC)
     # open page in browser
     webbrowser.open(url)
 
@@ -103,14 +103,16 @@ def open_it():
         print('\n')
         return False
 
+
 def clean_txt(txt):
     """clean txt from e.g. html tags"""
-    cleaned = re.sub(r'<.*?>', '', txt) # remove html
-    cleaned = cleaned.replace('&lt;', '<').replace('&gt;', '>') # retain html code tags
+    cleaned = re.sub(r'<.*?>', '', txt)  # remove html
+    cleaned = cleaned.replace('&lt;', '<').replace('&gt;', '>')  # retain html code tags
     cleaned = cleaned.replace('&quot;', '"')
     cleaned = cleaned.replace('&rsquo;', "'")
-    cleaned = cleaned.replace('&nbsp;', ' ') # italized text
+    cleaned = cleaned.replace('&nbsp;', ' ')  # italized text
     return cleaned
+
 
 def _continue():
     try:
@@ -130,7 +132,6 @@ def _continue():
 
 
 def parse_feed(url):
-
     d = feedparser.parse(url)
 
     # validate rss URL
@@ -155,6 +156,7 @@ def fetch_feeds(url_entries):
         print(bcolors.HEADER + "\n     {}/{} SOURCE>> {}\n".format(i, l, url) + bcolors.ENDC)
         # print out feeds
         url_entries[url]['unread'] = dict(enumerate(d.entries))
+
         def recurse(zipped):
             unread = zipped['unread']
             read = zipped['read']
@@ -181,8 +183,7 @@ def fetch_feeds(url_entries):
                         read += [unread[int(kb)]]
                         unread.pop(int(kb), None)
                 else:
-                    print(
-                        bcolors.BOLD + 'Invalid entry ... {} '.format(kb) + bcolors.ENDC)
+                    print(bcolors.BOLD + 'Invalid entry ... {} '.format(kb) + bcolors.ENDC)
                 # repeat with same feeds and listen to kb again
 
                 recurse(zipped)
@@ -199,13 +200,13 @@ def topic_choice():
 
     try:
         m = '\nChoose the topic (number)? : '
-        try: # python 2
+        try:  # python 2
             uin = raw_input(m)
-        except NameError: # python 3
+        except NameError:  # python 3
             uin = input(m)
         uin = int(uin)
         topic = feed_hierarchy[uin]
-    except: # catch all exceptions
+    except:  # catch all exceptions
         print('\nInvalid choice!')
         topic = 'General'
 
@@ -229,24 +230,23 @@ def feed_delete(rss_url):
     dbop.remove_link(rss_url)
 
 
-def feed_topics(option, opt_str, value, parser):
-    category = parser.rargs
+def feed_topics(category=None):
     if category:
         dbop.browse_links(category)
     else:
         dbop.print_topics()
 
 
-def feed_remove_topic(option, opt_str, value, parser):
-    dbop.delete_topic(parser.rargs[0])
+def feed_remove_topic(category):
+    dbop.delete_topic(category)
 
 
-def feed_refresh(option, opt_str, value, parser):
+def feed_refresh():
     dbop.rebuild_library()
     return "Refresh successful"
 
 
-def feed_version(option, opt_str, value, parser):
+def feed_version():
     print("TermFeed 0.0.12 (Curtesy of Sire of Dragons and Aziz Alto)")
 
 
@@ -258,6 +258,7 @@ def validate_feed(url):
 
 
 CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help'], 'ignore_unknown_options': True}
+
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 def feed():
@@ -288,9 +289,27 @@ def delete(rss_url):
     feed_delete(rss_url)
 
 
+@feed.command()
+@click.argument('category', required=False)
+def topic(category):
+    feed_topics(category)
+
+
+@feed.command()
+@click.argument('category', required=True)
+def remove_topic(category):
+    feed_remove_topic(category)
+
+
+@feed.command()
+def refresh():
+    feed_refresh()
+
+
 def main():
     feed()
 
+"""
     # flags_parser = OptionParser()
     # flags_parser.add_option('-b', '--browse', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_browse, dest='output')
     # flags_parser.add_option('-a', '--add', help='Add new url <rss-url> to database under [<category>] (or "General" otherwise)', action='callback', callback=feed_add, dest='output')
@@ -301,6 +320,7 @@ def main():
     # flags_parser.add_option('-v', '--version', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_version, dest='output')
 
     # (options, args) = flags_parser.parse_args()
+"""
 
 
 if __name__ == '__main__':

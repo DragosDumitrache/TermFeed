@@ -16,11 +16,11 @@ setup(
     author_email='dragosd2000@gmail.com',
     version='0.0.11',
     install_requires=['feedparser', 'click'],
-    packages=['termfeed', 'termfeed.support', 'termfeed.feed'],
+    packages=['feed', 'feed.support'],
     scripts=[],
     entry_points={
         'console_scripts': [
-            'feed = termfeed.feed.feed:main'
+            'feed = feed.feed:main'
         ]
     }
 )

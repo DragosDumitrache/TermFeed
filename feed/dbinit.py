@@ -7,7 +7,7 @@ import pickle
 from os import path
 from collections import OrderedDict
 
-from termfeed.urls import rss
+from feed.urls import rss
 
 homedir = path.expanduser('~')
 
