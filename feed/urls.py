@@ -11,11 +11,10 @@ rss = {
 
     ],
     "Stack": [
-        "http://stackoverflow.com/questions/tagged/python",
-        "http://stackoverflow.com/questions/tagged/python+numpy",
-        "http://stackoverflow.com/feeds",
-        "http://stackoverflow.com/questions/tagged/python+django",
-        "http://stackoverflow.com/questions/tagged/python+django+javascript"
+        "https://stackoverflow.com/feeds/tag?tagnames=python&sort=newest",
+        "https://stackoverflow.com/feeds/tag?tagnames=python-click&sort=newest",
+        "https://stackoverflow.com/feeds",
+        "https://stackoverflow.com/feeds/tag?tagnames=gradle&sort=newest"
     ],
     "News": [
         "feed://www.aljazeera.com/xml/rss/all.xml",

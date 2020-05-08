@@ -95,7 +95,7 @@ def print_desc(topic, txt):
 
 def open_it():
     try:
-        q = click.prompt('\n\n\t Open it in browser ?', confirmation_prompt=True)
+        q = click.confirm('\n\n\t Open it in browser ?')
         print('\n')
         if q:
             return True
