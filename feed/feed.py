@@ -86,7 +86,6 @@ def open_page(url, title):
 def print_feed(zipped):
     for num, post in zipped.items():
         click.echo(f'{success(f"[{num}]")} {post.title}')
-        # click.echo(f'{post.title}')
 
 
 def print_desc(topic, txt):
