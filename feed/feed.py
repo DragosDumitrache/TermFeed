@@ -46,15 +46,24 @@ from feed import dbop
 feed_hierarchy = []
 
 
-class bcolors:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+def fail(text):
+    return click.style(text, fg='red')
+
+
+def warn(text):
+    return click.style(text, fg='yellow')
+
+
+def success(text):
+    return click.style(text, fg='green')
+
+
+def focus(text):
+    return click.style(text, fg='cyan')
+
+
+def bold(text):
+    return click.style(text, bold=True)
 
 
 def _connected():
@@ -69,32 +78,27 @@ def _connected():
 
 
 def open_page(url, title):
-    print(bcolors.WARNING + '\topening ... {}\n'.format(title.encode('utf8')) + bcolors.ENDC)
+    click.echo(warn(f'{title.encode("utf8")}'))
     # open page in browser
     webbrowser.open(url)
 
 
 def print_feed(zipped):
     for num, post in zipped.items():
-        print(bcolors.OKGREEN + '[{}] '.format(num) + bcolors.ENDC, end='')
-        print('{}'.format(post.title.encode('utf8')))
+        click.echo(success(f'[{num}]'))
+        click.echo(f'{post.title.encode("utf8")}')
 
 
 def print_desc(topic, txt):
-    try:
-        print(bcolors.WARNING + '\n\n{}:'.format(topic) + bcolors.ENDC)
-    except UnicodeEncodeError:
-        pass
-    print(bcolors.BOLD + '\n\t{}'.format(txt.encode('utf8')) + bcolors.ENDC)
+    click.echo(warn(f'\n\n{topic}'))
+    click.echo(bold(f'\n\t{txt.encode("utf8")}'))
 
 
 def open_it():
     try:
-        txt = '\n\n\t Open it in browser ? [y/n] '
-        q = input(txt)  # python 3
-
+        q = click.prompt('\n\n\t Open it in browser ?', confirmation_prompt=True)
         print('\n')
-        if q == 'y':
+        if q:
             return True
     except KeyboardInterrupt:
         print('\n')
@@ -115,12 +119,7 @@ def _continue():
     try:
 
         msg = """\n\nPress: Enter to continue, ... [NUM] for short description / open a page, ... or CTRL-C to exit: """
-        print(bcolors.FAIL + msg + bcolors.ENDC, end='')
-        # kb is the pressed keyboard key
-        try:
-            kb = raw_input()
-        except NameError:
-            kb = input()
+        kb = click.prompt(fail(msg))
         return kb
 
     except KeyboardInterrupt:
@@ -150,7 +149,7 @@ def fetch_feeds(url_entries):
 
         # feeds source
         l = len(urls) - 1
-        print(bcolors.HEADER + "\n     {}/{} SOURCE>> {}\n".format(i, l, url) + bcolors.ENDC)
+        click.echo(focus(f'\n    {i}/{l} SOURCE>> {url}\n'))
         # print out feeds
         url_entries[url]['unread'] = dict(enumerate(d.entries))
 
@@ -180,9 +179,7 @@ def fetch_feeds(url_entries):
                         read += [unread[int(kb)]]
                         unread.pop(int(kb), None)
                 else:
-                    print(bcolors.BOLD + 'Invalid entry ... {} '.format(kb) + bcolors.ENDC)
-                # repeat with same feeds and listen to kb again
-
+                    click.echo(bold(f'Invalid entry ... {kb} '))
                 recurse(zipped)
 
         recurse(url_entries[url])
@@ -193,14 +190,10 @@ def topic_choice():
 
     feed_hierarchy = list(topics)
     for i, tag in enumerate(topics):
-        print('{} {}'.format(i, feed_hierarchy[i]))
+        print(f'{i} {feed_hierarchy[i]}')
 
     try:
-        m = '\nChoose the topic (number)? : '
-        try:  # python 2
-            uin = raw_input(m)
-        except NameError:  # python 3
-            uin = input(m)
+        uin = click.prompt('\nChoose the topic (number) ?', type=click.Choice([str(i) for i in range(len(topics))]))
         uin = int(uin)
         topic = feed_hierarchy[uin]
     except:  # catch all exceptions
@@ -307,6 +300,7 @@ def refresh():
 def main():
     feed()
 
+
 """
     # flags_parser = OptionParser()
     # flags_parser.add_option('-b', '--browse', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_browse, dest='output')
@@ -319,7 +313,6 @@ def main():
 
     # (options, args) = flags_parser.parse_args()
 """
-
 
 if __name__ == '__main__':
     if not _connected():
