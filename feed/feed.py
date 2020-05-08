@@ -78,20 +78,20 @@ def _connected():
 
 
 def open_page(url, title):
-    click.echo(warn(f'{title.encode("utf8")}'))
+    click.echo(warn(f'{title}'))
     # open page in browser
     webbrowser.open(url)
 
 
 def print_feed(zipped):
     for num, post in zipped.items():
-        click.echo(success(f'[{num}]'))
-        click.echo(f'{post.title.encode("utf8")}')
+        click.echo(f'{success(f"[{num}]")} {post.title}')
+        # click.echo(f'{post.title}')
 
 
 def print_desc(topic, txt):
     click.echo(warn(f'\n\n{topic}'))
-    click.echo(bold(f'\n\t{txt.encode("utf8")}'))
+    click.echo(bold(f'\n\t{txt}'))
 
 
 def open_it():
@@ -118,7 +118,7 @@ def clean_txt(txt):
 def _continue():
     try:
 
-        msg = """\n\nPress: Enter to continue, ... [NUM] for short description / open a page, ... or CTRL-C to exit: """
+        msg = """\n\nPress: Enter to continue\n... [NUM] for short description / open a page\n... or CTRL-C to exit: """
         kb = click.prompt(fail(msg))
         return kb
 
