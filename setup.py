@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+import subprocess
 
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
 
+version = subprocess.run(['./version.sh'], capture_output=True, text=True).stdout
 
 setup(
     name='TermFeed',
@@ -14,7 +16,7 @@ setup(
     download_url='https://github.com/dragosdumitrache/TermFeed/archive/master.zip',
     license="MIT",
     author_email='dragosd2000@gmail.com',
-    version='0.0.11',
+    version=version,
     install_requires=['feedparser', 'click'],
     packages=['feed', 'feed.support'],
     scripts=[],

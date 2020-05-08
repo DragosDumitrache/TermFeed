@@ -91,10 +91,7 @@ def print_desc(topic, txt):
 def open_it():
     try:
         txt = '\n\n\t Open it in browser ? [y/n] '
-        try:
-            q = raw_input(txt)  # python 2
-        except NameError:
-            q = input(txt)  # python 3
+        q = input(txt)  # python 3
 
         print('\n')
         if q == 'y':
@@ -261,6 +258,7 @@ CONTEXT_SETTINGS = {'help_option_names': ['-h', '--help'], 'ignore_unknown_optio
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
+@click.version_option()
 def feed():
     pass
 
