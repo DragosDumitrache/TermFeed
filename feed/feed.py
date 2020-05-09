@@ -84,11 +84,6 @@ def open_page(url, title):
     webbrowser.open(url)
 
 
-def print_feed(zipped):
-    for num, post in zipped.items():
-        click.echo(f'{success(f"[{num}]")} {post.title}')
-
-
 def print_desc(topic, txt):
     click.echo(warn(f'\n\n{topic}'))
     click.echo(bold(f'\n\t{txt}'))
@@ -115,18 +110,6 @@ def clean_txt(txt):
     return cleaned
 
 
-def _continue():
-    try:
-
-        msg = """\n\nPress: Enter to continue\n... [NUM] for short description / open a page\n... or CTRL-C to exit: """
-        kb = click.prompt(fail(msg))
-        return kb
-
-    except KeyboardInterrupt:
-        # return False
-        exit()
-
-
 def parse_feed(url):
     d = feedparser.parse(url)
 
@@ -136,92 +119,6 @@ def parse_feed(url):
     else:
         print("INVALID URL feed: {}".format(url))
         return None
-
-
-def fetch_feeds(url_entries):
-    urls = url_entries.keys()
-
-    feed_menu = TerminalMenu(urls, title='Select a feed')
-    feed_menu_back = False
-    feed_choice = feed_menu.show()
-
-    #
-    # for i, url in enumerate(urls):
-    #
-    #     d = parse_feed(url)
-    #
-    #     if d is None:
-    #         continue  # to next url
-    #
-    #     # feeds source
-    #     l = len(urls) - 1
-    #     click.echo(focus(f'\n    {i}/{l} SOURCE>> {url}\n'))
-    #     # print out feeds
-    #     url_entries[url]['unread'] = dict(enumerate(d.entries))
-    #
-    #
-    #     recurse(url_entries[url])
-
-
-def recurse(zipped):
-    unread = zipped['unread']
-    read = zipped['read']
-
-    available_titles = [m.title for m in unread.values()]
-    articles_menu = TerminalMenu(available_titles)
-    article_index = articles_menu.show()
-
-    if article_index:
-        article = unread[article_index]
-        link = article.link
-        title = article.title
-
-        try:
-            desc = article.description
-            desc = clean_txt(desc)
-            print_desc(title, desc)
-        except AttributeError:
-            print('\n\tNo description available!!')
-
-        if open_it():
-            open_page(link, title)
-            read += [article]
-            unread.pop(article_index, None)
-    # print_feed(unread)
-    #
-    # kb = _continue()  # keystroke listener
-    #
-    # if kb:
-    #     user_selected = kb is not '' and kb in str(unread.keys())
-    #     if user_selected:
-    #         # to open page in browser
-    #         link = unread[int(kb)].link
-    #         title = unread[int(kb)].title
-    #         try:
-    #             desc = unread[int(kb)].description
-    #             desc = clean_txt(desc)
-    #             print_desc(title, desc)
-    #         except AttributeError:
-    #             print('\n\tNo description available!!')
-    #
-    #         if open_it():
-    #             open_page(link, title)
-    #             read += [unread[int(kb)]]
-    #             unread.pop(int(kb), None)
-    #     else:
-    #         click.echo(bold(f'Invalid entry ... {kb} '))
-    #     recurse(zipped)
-
-
-def topic_choice():
-    topics = dbop.topics()
-
-    feed_hierarchy = list(topics)
-    terminal_menu = TerminalMenu(feed_hierarchy, title='Select a topic')
-    index = terminal_menu.show()
-    topic = feed_hierarchy[index]
-
-    return dbop.read(topic)
 
 
 def feed_browse():
@@ -287,7 +184,6 @@ def feed_browse():
                             open_page(link, title)
                             read += [article]
                             unread.pop(article_index, None)
-                            # recurse(url_entries[url])
 
 
 def feed_add(rss_url, category):
@@ -316,10 +212,6 @@ def feed_remove_topic(category):
 def feed_refresh():
     dbop.rebuild_library()
     return "Refresh successful"
-
-
-def feed_version():
-    print("TermFeed 0.0.12 (Curtesy of Sire of Dragons and Aziz Alto)")
 
 
 def validate_feed(url):
