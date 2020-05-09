@@ -17,7 +17,7 @@ setup(
     license="MIT",
     author_email='dragosd2000@gmail.com',
     version=version,
-    install_requires=['feedparser', 'click'],
+    install_requires=['feedparser', 'click', 'simple-term-menu'],
     packages=['feed', 'feed.support'],
     scripts=[],
     entry_points={
