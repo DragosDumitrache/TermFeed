@@ -85,7 +85,6 @@ def open_page(url, title):
 
 
 def print_feed(zipped):
-
     for num, post in zipped.items():
         click.echo(f'{success(f"[{num}]")} {post.title}')
 
@@ -146,7 +145,6 @@ def fetch_feeds(url_entries):
     feed_menu_back = False
     feed_choice = feed_menu.show()
 
-
     #
     # for i, url in enumerate(urls):
     #
@@ -166,7 +164,6 @@ def fetch_feeds(url_entries):
 
 
 def recurse(zipped):
-
     unread = zipped['unread']
     read = zipped['read']
 
@@ -233,33 +230,64 @@ def feed_browse():
     feed_hierarchy = list(topics)
     feed_hierarchy.append('Exit')
     terminal_menu = TerminalMenu(feed_hierarchy, title='Select a topic')
-    index = terminal_menu.show()
-    topic = feed_hierarchy[index]
-    url_entries = dbop.read(topic)
+    terminal_menu_exit = False
 
-    if url_entries:
-        urls = list(url_entries.keys())
-        urls.append('Back')
-        feed_menu = TerminalMenu(urls, title='Select a feed')
-        feed_menu_back = False
-        feed_choice = feed_menu.show()
+    while not terminal_menu_exit:
+        index = terminal_menu.show()
+        topic = feed_hierarchy[index]
 
-        url = urls[feed_choice]
-        d = parse_feed(url)
+        if topic == 'Exit':
+            terminal_menu_exit = True
+            continue
 
-        if d:
-            # feeds source
-            l = len(urls) - 1
-            # click.echo(focus(f'\n    {i}/{l} SOURCE>> {url}\n'))
-            # print out feeds
-            url_entries[url]['unread'] = dict(enumerate(d.entries))
+        url_entries = dbop.read(topic)
 
+        if url_entries:
+            urls = list(url_entries.keys())
+            urls.append('Back')
+            feed_menu = TerminalMenu(urls, title='Select a feed')
+            feed_menu_back = False
+            while not feed_menu_back:
+                feed_choice = feed_menu.show()
 
-            recurse(url_entries[url])
+                url = urls[feed_choice]
+                if url == 'Back':
+                    feed_menu_back = True
+                    continue
+                d = parse_feed(url)
 
+                if d:
+                    url_entries[url]['unread'] = dict(enumerate(d.entries))
+                    unread = url_entries[url]['unread']
+                    read = url_entries[url]['read']
+                    available_titles = [m.title for m in unread.values()] + ['Back']
+                    articles_menu = TerminalMenu(available_titles)
+                    articles_menu_back = False
+                    while not articles_menu_back:
+                        article_index = articles_menu.show()
 
+                        title = available_titles[article_index]
+                        if title == 'Back':
+                            articles_menu_back = True
+                            continue
 
-    # fetch_feeds(urls)
+                        article = unread[article_index]
+
+                        link = article.link
+                        title = article.title
+
+                        try:
+                            desc = article.description
+                            desc = clean_txt(desc)
+                            print_desc(title, desc)
+                        except AttributeError:
+                            print('\n\tNo description available!!')
+
+                        if open_it():
+                            open_page(link, title)
+                            read += [article]
+                            unread.pop(article_index, None)
+                            # recurse(url_entries[url])
 
 
 def feed_add(rss_url, category):
@@ -353,6 +381,7 @@ def refresh():
 
 def main():
     feed()
+
 
 if __name__ == '__main__':
     if not _connected():
