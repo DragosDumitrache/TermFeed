@@ -35,6 +35,7 @@ import webbrowser
 
 import click
 import feedparser
+from simple_term_menu import TerminalMenu
 
 try:
     from urllib import urlopen
@@ -83,11 +84,6 @@ def open_page(url, title):
     webbrowser.open(url)
 
 
-def print_feed(zipped):
-    for num, post in zipped.items():
-        click.echo(f'{success(f"[{num}]")} {post.title}')
-
-
 def print_desc(topic, txt):
     click.echo(warn(f'\n\n{topic}'))
     click.echo(bold(f'\n\t{txt}'))
@@ -114,18 +110,6 @@ def clean_txt(txt):
     return cleaned
 
 
-def _continue():
-    try:
-
-        msg = """\n\nPress: Enter to continue\n... [NUM] for short description / open a page\n... or CTRL-C to exit: """
-        kb = click.prompt(fail(msg))
-        return kb
-
-    except KeyboardInterrupt:
-        # return False
-        exit()
-
-
 def parse_feed(url):
     d = feedparser.parse(url)
 
@@ -137,74 +121,69 @@ def parse_feed(url):
         return None
 
 
-def fetch_feeds(url_entries):
-    urls = url_entries.keys()
-    for i, url in enumerate(urls):
-
-        d = parse_feed(url)
-
-        if d is None:
-            continue  # to next url
-
-        # feeds source
-        l = len(urls) - 1
-        click.echo(focus(f'\n    {i}/{l} SOURCE>> {url}\n'))
-        # print out feeds
-        url_entries[url]['unread'] = dict(enumerate(d.entries))
-
-        def recurse(zipped):
-            unread = zipped['unread']
-            read = zipped['read']
-
-            print_feed(unread)
-
-            kb = _continue()  # keystroke listener
-
-            if kb:
-                user_selected = kb is not '' and kb in str(unread.keys())
-                if user_selected:
-                    # to open page in browser
-                    link = unread[int(kb)].link
-                    title = unread[int(kb)].title
-                    try:
-                        desc = unread[int(kb)].description
-                        desc = clean_txt(desc)
-                        print_desc(title, desc)
-                    except AttributeError:
-                        print('\n\tNo description available!!')
-
-                    if open_it():
-                        open_page(link, title)
-                        read += [unread[int(kb)]]
-                        unread.pop(int(kb), None)
-                else:
-                    click.echo(bold(f'Invalid entry ... {kb} '))
-                recurse(zipped)
-
-        recurse(url_entries[url])
-
-
-def topic_choice():
+def feed_browse():
     topics = dbop.topics()
 
     feed_hierarchy = list(topics)
-    for i, tag in enumerate(topics):
-        print(f'{i} {feed_hierarchy[i]}')
+    feed_hierarchy.append('Exit')
+    terminal_menu = TerminalMenu(feed_hierarchy, title='Select a topic')
+    terminal_menu_exit = False
 
-    try:
-        uin = click.prompt('\nChoose the topic (number) ?', type=click.Choice([str(i) for i in range(len(topics))]))
-        uin = int(uin)
-        topic = feed_hierarchy[uin]
-    except:  # catch all exceptions
-        print('\nInvalid choice!')
-        topic = 'General'
+    while not terminal_menu_exit:
+        index = terminal_menu.show()
+        topic = feed_hierarchy[index]
 
-    return dbop.read(topic)
+        if topic == 'Exit':
+            terminal_menu_exit = True
+            continue
 
+        url_entries = dbop.read(topic)
 
-def feed_browse():
-    urls = topic_choice()
-    fetch_feeds(urls)
+        if url_entries:
+            urls = list(url_entries.keys())
+            urls.append('Back')
+            feed_menu = TerminalMenu(urls, title='Select a feed')
+            feed_menu_back = False
+            while not feed_menu_back:
+                feed_choice = feed_menu.show()
+
+                url = urls[feed_choice]
+                if url == 'Back':
+                    feed_menu_back = True
+                    continue
+                d = parse_feed(url)
+
+                if d:
+                    url_entries[url]['unread'] = dict(enumerate(d.entries))
+                    unread = url_entries[url]['unread']
+                    read = url_entries[url]['read']
+                    available_titles = [m.title for m in unread.values()] + ['Back']
+                    articles_menu = TerminalMenu(available_titles)
+                    articles_menu_back = False
+                    while not articles_menu_back:
+                        article_index = articles_menu.show()
+
+                        title = available_titles[article_index]
+                        if title == 'Back':
+                            articles_menu_back = True
+                            continue
+
+                        article = unread[article_index]
+
+                        link = article.link
+                        title = article.title
+
+                        try:
+                            desc = article.description
+                            desc = clean_txt(desc)
+                            print_desc(title, desc)
+                        except AttributeError:
+                            print('\n\tNo description available!!')
+
+                        if open_it():
+                            open_page(link, title)
+                            read += [article]
+                            unread.pop(article_index, None)
 
 
 def feed_add(rss_url, category):
@@ -233,10 +212,6 @@ def feed_remove_topic(category):
 def feed_refresh():
     dbop.rebuild_library()
     return "Refresh successful"
-
-
-def feed_version():
-    print("TermFeed 0.0.12 (Curtesy of Sire of Dragons and Aziz Alto)")
 
 
 def validate_feed(url):
@@ -299,19 +274,6 @@ def refresh():
 def main():
     feed()
 
-
-"""
-    # flags_parser = OptionParser()
-    # flags_parser.add_option('-b', '--browse', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_browse, dest='output')
-    # flags_parser.add_option('-a', '--add', help='Add new url <rss-url> to database under [<category>] (or "General" otherwise)', action='callback', callback=feed_add, dest='output')
-    # flags_parser.add_option('-d', '--delete', help='Delete <rss-url> from the database file', action='callback', callback=feed_delete, dest='output')
-    # flags_parser.add_option('-t', '--topics', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_topics, dest='output')
-    # flags_parser.add_option('-D', '--removeTopic', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_remove_topic, dest='output')
-    # flags_parser.add_option('-R', '--refresh', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_refresh, dest='output')
-    # flags_parser.add_option('-v', '--version', help='Browse feed by category avaialble in the database file', action='callback', callback=feed_version, dest='output')
-
-    # (options, args) = flags_parser.parse_args()
-"""
 
 if __name__ == '__main__':
     if not _connected():
