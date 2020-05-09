@@ -30,6 +30,7 @@ Options:
 
 from __future__ import print_function
 
+import os
 import re
 import webbrowser
 
@@ -130,6 +131,7 @@ def feed_browse():
     terminal_menu_exit = False
 
     while not terminal_menu_exit:
+        os.system('clear')
         index = terminal_menu.show()
         topic = feed_hierarchy[index]
 
@@ -145,6 +147,7 @@ def feed_browse():
             feed_menu = TerminalMenu(urls, title='Select a feed')
             feed_menu_back = False
             while not feed_menu_back:
+                os.system('clear')
                 feed_choice = feed_menu.show()
 
                 url = urls[feed_choice]
@@ -161,6 +164,7 @@ def feed_browse():
                     articles_menu = TerminalMenu(available_titles)
                     articles_menu_back = False
                     while not articles_menu_back:
+                        os.system('clear')
                         article_index = articles_menu.show()
 
                         title = available_titles[article_index]
