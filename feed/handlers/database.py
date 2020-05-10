@@ -1,29 +1,43 @@
-#!/usr/bin/env python
-#-*- coding: utf-8 -*-
-
-"""
-database operations.
-
-dbop.py manipulate database add, update, delete
-"""
-
+'''
+This should be executed once to initialize the db from urls.py
+'''
 import pickle
+from collections import OrderedDict
 from os import path
+
+from feed.urls import rss
 
 homedir = path.expanduser('~')
 
+
 def rebuild_library():
-    import feed.dbinit
+    database_init()
     print('created ".termfeed.db" in {}'.format(homedir))
+
 
 # instantiate db if it's not created yet
 if not path.exists(homedir + '/.termfeed.db'):
     rebuild_library()
 
-
 # connect to db
 db = open(path.join(homedir, '.termfeed.db'), 'rb')
 d = pickle.load(db)
+
+
+def database_init():
+    d = OrderedDict()
+    for topic in rss:
+        links = rss[topic]
+        d[topic] = {link: OrderedDict({'unread': [], 'read': []}) for link in links}
+
+    with open(path.join(homedir, '.termfeed.db'), 'wb') as db:
+        pickle.dump(d, db)
+
+
+def update_database():
+    global d
+    pickle.dump(d, path.join(homedir, '.termfeed.db'))
+    d = pickle.load(path.join(homedir, '.termfeed.db'))
 
 
 def topics():
@@ -36,9 +50,13 @@ def read(topic):
     else:
         return None
 
-def mark_read(topic, link):
-    pass
-    #TODO Mark link entries as read
+
+def mark_read(topic, link, title):
+    if link not in d[topic][link]['read']:
+        d[topic][link]['read'] += [title]
+        d[topic][link]['unread'].remove(title)
+        update_database()
+
 
 def browse_links(topic):
     if topic in d.keys():
@@ -59,7 +77,6 @@ def print_topics():
 
 
 def add_link(link, topic='General'):
-
     if topic in d.keys():
         if link not in d[topic]:
             # to add a new url: copy, mutates, store back
@@ -75,7 +92,6 @@ def add_link(link, topic='General'):
 
 
 def remove_link(link):
-
     done = False
     for topic in topics():
         if link in d[topic]:
@@ -111,14 +127,3 @@ if __name__ == '__main__':
     add_topic('Rust')
     pickle.dump(d, path.join(homedir, '.termfeed.db'))
     d = pickle.load(path.join(homedir, '.termfeed.db'))
-
-    # rebuild_library()
-    # for l in read('CS'):
-    #     print(l)
-    #
-    # remove_link('http://rt.com/rss/')
-    #
-    # add_link('http://rt.com/rss/', 'News')
-    #
-    # for l in read('News'):
-    #     print(l)
